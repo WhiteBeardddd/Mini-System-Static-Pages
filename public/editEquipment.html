@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit equipment | Networking Lab Inventory</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="dashboard.html">Networking Lab Inventory</a>
+    <nav>
+      <a href="dashboard.html">Equipment</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page-header">
+      <h1>Edit equipment</h1>
+    </div>
+
+    <div id="not-found" class="card" hidden>
+      <p>That record could not be found.</p>
+      <a class="btn" href="dashboard.html">Back to equipment list</a>
+    </div>
+
+    <div class="card" id="form-card">
+      <div id="error" class="error-banner" hidden></div>
+
+      <form id="equipment-form" class="stack" novalidate>
+        <div class="field">
+          <label for="assetTag">Asset tag</label>
+          <input type="text" id="assetTag" name="assetTag" required placeholder="e.g. NET-SW-001">
+        </div>
+
+        <div class="field">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" required placeholder="e.g. Cisco Catalyst 2960 Switch">
+        </div>
+
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category" name="category" required>
+            <option value="">Select a category</option>
+            <option value="Switch">Switch</option>
+            <option value="Router">Router</option>
+            <option value="Firewall">Firewall</option>
+            <option value="Cable">Cable</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="location">Location</label>
+          <input type="text" id="location" name="location" placeholder="e.g. Rack A, Room LB-465">
+        </div>
+
+        <div class="field">
+          <label for="status">Status</label>
+          <select id="status" name="status" required>
+            <option value="Available">Available</option>
+            <option value="In use">In use</option>
+            <option value="Under repair">Under repair</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" placeholder="Optional notes"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="submit-btn">Save changes</button>
+          <a class="btn" href="dashboard.html">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/form.js" data-mode="edit"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipment list | Networking Lab Inventory</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="dashboard.html">Networking Lab Inventory</a>
+    <nav>
+      <a href="dashboard.html" aria-current="page">Equipment</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page-header">
+      <h1>Equipment</h1>
+      <a class="btn btn-primary" href="addEquipment.html">Add equipment</a>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-total">Total equipment: <strong id="stat-total-count">0</strong></div>
+      <div class="stat-categories" id="stat-categories"></div>
+    </div>
+
+    <div class="toolbar">
+      <label for="search" class="visually-hidden">Search</label>
+      <input type="search" id="search" placeholder="Search by asset tag or name">
+      <label for="status-filter" class="visually-hidden">Filter by status</label>
+      <select id="status-filter">
+        <option value="">All statuses</option>
+        <option value="Available">Available</option>
+        <option value="In use">In use</option>
+        <option value="Under repair">Under repair</option>
+      </select>
+    </div>
+
+    <div id="error" class="error-banner" hidden></div>
+
+    <div id="table-wrap" class="table-wrap" hidden>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Asset tag</th>
+            <th scope="col">Name</th>
+            <th scope="col">Category</th>
+            <th scope="col">Location</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+
+    <div id="empty-state" class="empty-state" hidden>
+      <p>No equipment recorded yet.</p>
+      <a class="btn btn-primary" href="addEquipment.html">Add your first equipment</a>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/list.js"></script>
+</body>
+</html>

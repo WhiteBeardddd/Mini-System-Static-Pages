@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipment details | Networking Lab Inventory</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="dashboard.html">Networking Lab Inventory</a>
+    <nav>
+      <a href="dashboard.html">Equipment</a>
+    </nav>
+  </header>
+
+  <main>
+    <div id="not-found" class="card" hidden>
+      <p>That record could not be found.</p>
+      <a class="btn" href="dashboard.html">Back to equipment list</a>
+    </div>
+
+    <div id="detail-card" hidden>
+      <div class="page-header">
+        <h1 id="record-name"></h1>
+        <span id="record-status" class="tag"></span>
+      </div>
+
+      <div id="error" class="error-banner" hidden></div>
+
+      <div class="card">
+        <dl class="detail-grid">
+          <div>
+            <dt>Asset tag</dt>
+            <dd id="record-assetTag"></dd>
+          </div>
+          <div>
+            <dt>Category</dt>
+            <dd id="record-category"></dd>
+          </div>
+          <div>
+            <dt>Location</dt>
+            <dd id="record-location"></dd>
+          </div>
+          <div>
+            <dt>Notes</dt>
+            <dd id="record-notes"></dd>
+          </div>
+          <div>
+            <dt>Created</dt>
+            <dd id="record-createdAt"></dd>
+          </div>
+          <div>
+            <dt>Last updated</dt>
+            <dd id="record-updatedAt"></dd>
+          </div>
+        </dl>
+
+        <div class="form-actions">
+          <a class="btn btn-primary" id="edit-link" href="#">Edit</a>
+          <button type="button" class="btn btn-danger" id="delete-btn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/view.js"></script>
+</body>
+</html>

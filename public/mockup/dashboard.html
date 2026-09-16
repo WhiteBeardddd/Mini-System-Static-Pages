@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipment list | Networking Lab Inventory (UI preview)</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="dashboard.html">Networking Lab Inventory</a>
+    <nav>
+      <a href="dashboard.html" aria-current="page">Equipment</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page-header">
+      <h1>Equipment</h1>
+      <a class="btn btn-primary" href="addEquipment.html">Add equipment</a>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-total">Total equipment: <strong>3</strong></div>
+      <div class="stat-categories">
+        <span class="stat-chip">Switch: <strong>1</strong></span>
+        <span class="stat-chip">Router: <strong>1</strong></span>
+        <span class="stat-chip">Firewall: <strong>1</strong></span>
+        <span class="stat-chip">Cable: <strong>0</strong></span>
+        <span class="stat-chip">Other: <strong>0</strong></span>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <label for="search" class="visually-hidden">Search</label>
+      <input type="search" id="search" placeholder="Search by asset tag or name">
+      <label for="status-filter" class="visually-hidden">Filter by status</label>
+      <select id="status-filter">
+        <option value="">All statuses</option>
+        <option value="Available">Available</option>
+        <option value="In use">In use</option>
+        <option value="Under repair">Under repair</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Asset tag</th>
+            <th scope="col">Name</th>
+            <th scope="col">Category</th>
+            <th scope="col">Location</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>NET-SW-001</td>
+            <td>Cisco Catalyst 2960 Switch</td>
+            <td>Switch</td>
+            <td>Rack A, Room LB-465</td>
+            <td><span class="tag tag-available">Available</span></td>
+            <td class="row-actions">
+              <a class="btn btn-small" href="viewEquipment.html">View</a>
+              <a class="btn btn-small" href="editEquipment.html">Edit</a>
+              <button type="button" class="btn btn-small btn-danger">Delete</button>
+            </td>
+          </tr>
+          <tr>
+            <td>NET-RT-001</td>
+            <td>Cisco 4321 ISR Router</td>
+            <td>Router</td>
+            <td>Rack B, Room LB-465</td>
+            <td><span class="tag tag-inuse">In use</span></td>
+            <td class="row-actions">
+              <a class="btn btn-small" href="viewEquipment.html">View</a>
+              <a class="btn btn-small" href="editEquipment.html">Edit</a>
+              <button type="button" class="btn btn-small btn-danger">Delete</button>
+            </td>
+          </tr>
+          <tr>
+            <td>NET-FW-001</td>
+            <td>Fortinet FortiGate 60F</td>
+            <td>Firewall</td>
+            <td>Storage Cabinet, Room LB-465</td>
+            <td><span class="tag tag-repair">Under repair</span></td>
+            <td class="row-actions">
+              <a class="btn btn-small" href="viewEquipment.html">View</a>
+              <a class="btn btn-small" href="editEquipment.html">Edit</a>
+              <button type="button" class="btn btn-small btn-danger">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>

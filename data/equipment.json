@@ -1,0 +1,35 @@
+[
+  {
+    "id": "b1a2c3d4-1111-4a2b-8c3d-000000000001",
+    "assetTag": "NET-SW-001",
+    "name": "Cisco Catalyst 2960 Switch",
+    "category": "Switch",
+    "location": "Rack A, Room LB-465",
+    "status": "Available",
+    "notes": "24-port, used for VLAN labs.",
+    "createdAt": "2026-08-01T02:00:00.000Z",
+    "updatedAt": "2026-08-01T02:00:00.000Z"
+  },
+  {
+    "id": "b1a2c3d4-2222-4a2b-8c3d-000000000002",
+    "assetTag": "NET-RT-001",
+    "name": "Cisco 4321 ISR Router",
+    "category": "Router",
+    "location": "Rack B, Room LB-465",
+    "status": "In use",
+    "notes": "Reserved for routing protocols section, Tue/Thu.",
+    "createdAt": "2026-08-01T02:05:00.000Z",
+    "updatedAt": "2026-09-10T06:30:00.000Z"
+  },
+  {
+    "id": "b1a2c3d4-3333-4a2b-8c3d-000000000003",
+    "assetTag": "NET-FW-001",
+    "name": "Fortinet FortiGate 60F",
+    "category": "Firewall",
+    "location": "Storage Cabinet, Room LB-465",
+    "status": "Under repair",
+    "notes": "Power supply issue reported 2026-09-05.",
+    "createdAt": "2026-08-01T02:10:00.000Z",
+    "updatedAt": "2026-09-05T09:15:00.000Z"
+  }
+]

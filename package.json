@@ -1,0 +1,14 @@
+{
+  "name": "mini-system-static-pages",
+  "version": "1.0.0",
+  "description": "Networking Lab Equipment Inventory - static frontend with a small Express API",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

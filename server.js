@@ -1,11 +1,10 @@
 const express = require('express');
-const fs = require('fs');
+const mysql = require('mysql2/promise');
 const path = require('path');
 const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATA_FILE = path.join(__dirname, 'data', 'equipment.json');
 
 const STATUSES = ['Available', 'In use', 'Under repair'];
 
@@ -16,27 +15,41 @@ app.get('/', (req, res) => {
   res.redirect('/dashboard.html');
 });
 
-// Pure-UI preview: same look, but buttons only navigate between pages
-// (no fetch calls, no data persistence). Served from public/mockup.
-app.use('/mockup', express.static(path.join(__dirname, 'public', 'mockup')));
-app.get('/mockup', (req, res) => {
-  res.redirect('/mockup/dashboard.html');
+// MySQL connection (XAMPP defaults: user "root", empty password).
+const db = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  port: Number(process.env.DB_PORT) || 3306,
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'equipment_db',
+  timezone: 'Z', // store and read DATETIME values as UTC
 });
 
-function readData() {
-  const raw = fs.readFileSync(DATA_FILE, 'utf8');
-  return JSON.parse(raw);
+// Convert a database row (snake_case) to the JSON shape the frontend uses.
+function toRecord(row) {
+  return {
+    id: row.id,
+    assetTag: row.asset_tag,
+    name: row.name,
+    category: row.category,
+    location: row.location || '',
+    status: row.status,
+    notes: row.notes || '',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
-function writeData(records) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(records, null, 2));
+async function findById(id) {
+  const [rows] = await db.query('SELECT * FROM equipment WHERE id = ?', [id]);
+  return rows.length ? toRecord(rows[0]) : null;
 }
 
 function trim(value) {
   return typeof value === 'string' ? value.trim() : value;
 }
 
-function validate(body, records, idToExclude) {
+function validate(body) {
   const assetTag = trim(body.assetTag);
   const name = trim(body.name);
   const category = trim(body.category);
@@ -48,15 +61,6 @@ function validate(body, records, idToExclude) {
   if (!status) return { error: 'Status is required.' };
   if (!STATUSES.includes(status)) {
     return { error: `Status must be one of: ${STATUSES.join(', ')}.` };
-  }
-
-  const duplicate = records.some(
-    (r) =>
-      r.id !== idToExclude &&
-      r.assetTag.toLowerCase() === assetTag.toLowerCase()
-  );
-  if (duplicate) {
-    return { error: `Asset tag "${assetTag}" is already in use.`, duplicate: true };
   }
 
   return {
@@ -71,67 +75,98 @@ function validate(body, records, idToExclude) {
   };
 }
 
-app.get('/api/equipment', (req, res) => {
-  res.json(readData());
-});
+// The UNIQUE index on asset_tag rejects duplicates (case-insensitive collation).
+function isDuplicate(err) {
+  return err && err.code === 'ER_DUP_ENTRY';
+}
 
-app.get('/api/equipment/:id', (req, res) => {
-  const record = readData().find((r) => r.id === req.params.id);
-  if (!record) return res.status(404).json({ error: 'Record not found.' });
-  res.json(record);
-});
+function duplicateError(res, assetTag) {
+  return res.status(409).json({ error: `Asset tag "${assetTag}" is already in use.` });
+}
 
-app.post('/api/equipment', (req, res) => {
-  const records = readData();
-  const result = validate(req.body, records, null);
-  if (result.error) {
-    return res.status(result.duplicate ? 409 : 400).json({ error: result.error });
+function serverError(res, err) {
+  console.error(err);
+  return res.status(500).json({ error: 'Database error. Is MySQL running in XAMPP?' });
+}
+
+app.get('/api/equipment', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM equipment ORDER BY created_at');
+    res.json(rows.map(toRecord));
+  } catch (err) {
+    serverError(res, err);
   }
-
-  const now = new Date().toISOString();
-  const record = {
-    id: crypto.randomUUID(),
-    ...result.value,
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  records.push(record);
-  writeData(records);
-  res.status(201).json(record);
 });
 
-app.put('/api/equipment/:id', (req, res) => {
-  const records = readData();
-  const index = records.findIndex((r) => r.id === req.params.id);
-  if (index === -1) return res.status(404).json({ error: 'Record not found.' });
-
-  const result = validate(req.body, records, req.params.id);
-  if (result.error) {
-    return res.status(result.duplicate ? 409 : 400).json({ error: result.error });
+app.get('/api/equipment/:id', async (req, res) => {
+  try {
+    const record = await findById(req.params.id);
+    if (!record) return res.status(404).json({ error: 'Record not found.' });
+    res.json(record);
+  } catch (err) {
+    serverError(res, err);
   }
-
-  const updated = {
-    ...records[index],
-    ...result.value,
-    updatedAt: new Date().toISOString(),
-  };
-
-  records[index] = updated;
-  writeData(records);
-  res.json(updated);
 });
 
-app.delete('/api/equipment/:id', (req, res) => {
-  const records = readData();
-  const index = records.findIndex((r) => r.id === req.params.id);
-  if (index === -1) return res.status(404).json({ error: 'Record not found.' });
+app.post('/api/equipment', async (req, res) => {
+  const result = validate(req.body);
+  if (result.error) return res.status(400).json({ error: result.error });
 
-  records.splice(index, 1);
-  writeData(records);
-  res.status(204).end();
+  const v = result.value;
+  const id = crypto.randomUUID();
+  const now = new Date();
+
+  try {
+    await db.query(
+      `INSERT INTO equipment
+        (id, asset_tag, name, category, location, status, notes, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, v.assetTag, v.name, v.category, v.location, v.status, v.notes, now, now]
+    );
+    res.status(201).json(await findById(id));
+  } catch (err) {
+    if (isDuplicate(err)) return duplicateError(res, v.assetTag);
+    serverError(res, err);
+  }
 });
 
-app.listen(PORT, () => {
+app.put('/api/equipment/:id', async (req, res) => {
+  const result = validate(req.body);
+  if (result.error) return res.status(400).json({ error: result.error });
+
+  const v = result.value;
+
+  try {
+    const [info] = await db.query(
+      `UPDATE equipment
+       SET asset_tag = ?, name = ?, category = ?, location = ?, status = ?, notes = ?, updated_at = ?
+       WHERE id = ?`,
+      [v.assetTag, v.name, v.category, v.location, v.status, v.notes, new Date(), req.params.id]
+    );
+    if (info.affectedRows === 0) return res.status(404).json({ error: 'Record not found.' });
+    res.json(await findById(req.params.id));
+  } catch (err) {
+    if (isDuplicate(err)) return duplicateError(res, v.assetTag);
+    serverError(res, err);
+  }
+});
+
+app.delete('/api/equipment/:id', async (req, res) => {
+  try {
+    const [info] = await db.query('DELETE FROM equipment WHERE id = ?', [req.params.id]);
+    if (info.affectedRows === 0) return res.status(404).json({ error: 'Record not found.' });
+    res.status(204).end();
+  } catch (err) {
+    serverError(res, err);
+  }
+});
+
+app.listen(PORT, async () => {
   console.log(`Server running at http://localhost:${PORT}`);
+  try {
+    await db.query('SELECT 1');
+    console.log('Connected to MySQL');
+  } catch (err) {
+    console.error('Database connection failed:', err.message);
+  }
 });

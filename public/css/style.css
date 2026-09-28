@@ -122,6 +122,13 @@ h1 {
   margin-bottom: var(--space-4);
 }
 
+.title-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);

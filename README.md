@@ -1,14 +1,37 @@
 # Mini-System-Static-Pages
 
-A Networking Lab Equipment Inventory: a small web-based information system for viewing, adding, editing, and deleting lab equipment records (switches, routers, firewalls, cables, and other gear).
+A **Networking Lab Equipment Inventory**: a small web-based information system for viewing, adding, editing, and deleting lab equipment records (switches, routers, firewalls, cables, and other gear).
 
-This is a school project (BSIT, University of San Carlos). It uses plain HTML/CSS/vanilla JS pages served by a minimal Express server, with records stored in a MySQL database (run locally with XAMPP).
+This is a school project by Charles Benedict Boquecosa (BSIT, University of San Carlos). The frontend is plain HTML, CSS, and vanilla JavaScript, served by an Express backend that stores records in a MySQL database run locally with XAMPP.
+
+## Features
+
+- Dashboard listing all equipment, with a total count and a per-category breakdown
+- Search by asset tag or name, and filter by status
+- Add, view, edit, and delete records
+- Color-coded status tags: Available, In use, Under repair
+- Validation messages shown on the form, such as missing fields or a duplicate asset tag
+- Delete confirmation that names the item being deleted
+- Responsive layout that works on mobile
+
+## Requirements
+
+- [Node.js](https://nodejs.org/) 18 or newer
+- [XAMPP](https://www.apachefriends.org/) (MySQL/MariaDB and phpMyAdmin)
 
 ## Setup
 
-1. Install [XAMPP](https://www.apachefriends.org/), open the XAMPP Control Panel, and start **Apache** and **MySQL**.
-2. Open http://localhost/phpmyadmin, go to the **Import** tab, choose `database/equipment_db.sql`, and click **Import**. This creates the `equipment_db` database, the `equipment` table, and 3 sample records.
-3. Install and run the app:
+### 1. Create the database
+
+1. Open the XAMPP Control Panel and start **Apache** and **MySQL**.
+2. Go to http://localhost/phpmyadmin.
+3. Open the **Import** tab, choose `database/equipment_db.sql`, and click **Import**.
+
+This creates the `equipment_db` database and the `equipment` table, with 3 sample records.
+
+> Importing the file again drops the `equipment` table and restores only the sample records.
+
+### 2. Install and run the app
 
 ```bash
 git clone https://github.com/WhiteBeardddd/Mini-System-Static-Pages.git
@@ -17,51 +40,122 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:3000. The terminal should print `Connected to MySQL`.
+Open http://localhost:3000. The terminal should print:
 
-The server uses XAMPP's defaults (`localhost:3306`, user `root`, empty password, database `equipment_db`). Override them with the `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` environment variables if yours differ.
+```
+Server running at http://localhost:3000
+Connected to MySQL
+```
 
-`npm start` runs the server without file-watching; `npm run dev` restarts on file changes.
+- `npm run dev` restarts the server when files change.
+- `npm start` runs it without file watching.
 
-By default the server listens on port 3000. Set the `PORT` environment variable to use a different port.
+### Configuration
+
+The server uses XAMPP's defaults. Override any of them with environment variables:
+
+| Variable      | Default        |
+|---------------|----------------|
+| `PORT`        | `3000`         |
+| `DB_HOST`     | `localhost`    |
+| `DB_PORT`     | `3306`         |
+| `DB_USER`     | `root`         |
+| `DB_PASSWORD` | *(empty)*      |
+| `DB_NAME`     | `equipment_db` |
+
+Example in PowerShell: `$env:DB_PASSWORD='secret'; npm run dev`
 
 ## Pages
 
-- `index.html` — list all equipment, with search (by asset tag or name) and status filter
-- `add.html` — add a new equipment record
-- `edit.html` — edit an existing record (`?id=...`)
-- `view.html` — view record details (`?id=...`)
+| Page                  | Purpose                                                        |
+|-----------------------|----------------------------------------------------------------|
+| `dashboard.html`      | List all equipment with stats, search, and status filter (home page) |
+| `addEquipment.html`   | Add a new record                                               |
+| `viewEquipment.html`  | Record details, including created and updated dates (`?id=...`) |
+| `editEquipment.html`  | Edit an existing record (`?id=...`)                            |
 
-## Data
+## Project structure
 
-Records are stored in the `equipment` table of the `equipment_db` MySQL database (schema in `database/equipment_db.sql`). Columns are snake_case in the database (`asset_tag`, `created_at`, ...) and camelCase in the API. Each record has:
+```
+.
+├── server.js               # Express server: static files + REST API
+├── package.json
+├── database/
+│   └── equipment_db.sql    # database, table, and sample data (import into phpMyAdmin)
+└── public/
+    ├── dashboard.html
+    ├── addEquipment.html
+    ├── editEquipment.html
+    ├── viewEquipment.html
+    ├── css/
+    │   └── style.css       # shared stylesheet
+    └── js/
+        ├── api.js          # shared fetch helpers
+        ├── list.js         # dashboard
+        ├── form.js         # add and edit forms
+        └── view.js         # details page
+```
 
-| Field     | Type   | Notes                                        |
-|-----------|--------|-----------------------------------------------|
-| id        | string | generated with `crypto.randomUUID()`          |
-| assetTag  | string | required, unique (case-insensitive)           |
-| name      | string | required                                      |
-| category  | string | required, e.g. Switch, Router, Firewall, Cable, Other |
-| location  | string | optional                                      |
-| status    | string | required: `Available`, `In use`, or `Under repair` |
-| notes     | string | optional                                      |
-| createdAt | string | ISO timestamp, set on create                  |
-| updatedAt | string | ISO timestamp, refreshed on edit               |
+## Database
+
+Table `equipment` in the `equipment_db` database. Column names are snake_case in MySQL and camelCase in the API (for example, `asset_tag` becomes `assetTag`).
+
+| Column       | Type                                          | Notes                                     |
+|--------------|-----------------------------------------------|-------------------------------------------|
+| `id`         | VARCHAR(36), primary key                      | Generated by the server (UUID)            |
+| `asset_tag`  | VARCHAR(50), unique                           | Required, e.g. `NET-SW-001`; case-insensitive |
+| `name`       | VARCHAR(150)                                  | Required                                  |
+| `category`   | VARCHAR(50)                                   | Required: Switch, Router, Firewall, Cable, or Other |
+| `location`   | VARCHAR(150)                                  | Optional                                  |
+| `status`     | ENUM('Available', 'In use', 'Under repair')   | Required                                  |
+| `notes`      | TEXT                                          | Optional                                  |
+| `created_at` | DATETIME                                      | Set by the server on create (UTC)         |
+| `updated_at` | DATETIME                                      | Refreshed by the server on edit (UTC)     |
 
 ## API routes
 
-| Method | Route                | Purpose  | Success | Errors                          |
-|--------|----------------------|----------|---------|----------------------------------|
-| GET    | /api/equipment       | List all | 200     |                                   |
-| GET    | /api/equipment/:id   | Get one  | 200     | 404 if not found                 |
-| POST   | /api/equipment       | Create   | 201     | 400 validation, 409 duplicate tag |
-| PUT    | /api/equipment/:id   | Update   | 200     | 400 validation, 404, 409 duplicate tag |
-| DELETE | /api/equipment/:id   | Delete   | 204     | 404 if not found                 |
+| Method | Route                | Purpose  | Success | Errors                                  |
+|--------|----------------------|----------|---------|-----------------------------------------|
+| GET    | /api/equipment       | List all | 200     |                                         |
+| GET    | /api/equipment/:id   | Get one  | 200     | 404 not found                           |
+| POST   | /api/equipment       | Create   | 201     | 400 validation, 409 duplicate asset tag |
+| PUT    | /api/equipment/:id   | Update   | 200     | 400 validation, 404, 409 duplicate asset tag |
+| DELETE | /api/equipment/:id   | Delete   | 204     | 404 not found                           |
 
-Errors are returned as JSON: `{ "error": "message" }`.
+All routes return `500` if the database can't be reached. Errors are JSON: `{ "error": "message" }`.
+
+Example request body for `POST` and `PUT`:
+
+```json
+{
+  "assetTag": "NET-SW-002",
+  "name": "Cisco Catalyst 3650 Switch",
+  "category": "Switch",
+  "location": "Rack C, Room LB-465",
+  "status": "In use",
+  "notes": "Used for the VLAN trunking demo."
+}
+```
+
+### Validation
+
+- `assetTag`, `name`, `category`, and `status` are required. Inputs are trimmed, so blank or whitespace-only values are rejected.
+- `status` must be `Available`, `In use`, or `Under repair`.
+- Asset tags must be unique, ignoring case (`net-sw-001` counts as a duplicate of `NET-SW-001`). The database's unique index enforces this.
+- The server ignores any `id`, `createdAt`, or `updatedAt` sent by the client.
+- All queries use `?` placeholders, which prevents SQL injection.
+
+## Troubleshooting
+
+| Message in the terminal            | Fix                                                        |
+|------------------------------------|------------------------------------------------------------|
+| `Unknown database 'equipment_db'`  | Import `database/equipment_db.sql` in phpMyAdmin           |
+| `ECONNREFUSED`                     | Start MySQL in the XAMPP Control Panel                     |
+| `Access denied for user 'root'`    | Set `DB_PASSWORD` to your MySQL root password              |
+| `EADDRINUSE`                       | Port 3000 is taken; stop the other program or set `PORT`   |
 
 ## Tech stack
 
-- Backend: Node.js + Express (`express.static` for the frontend, a small REST API) with `mysql2`
-- Database: MySQL / MariaDB via XAMPP
-- Frontend: plain HTML, CSS, and vanilla JavaScript — no framework, no build step
+- **Frontend:** HTML, CSS, vanilla JavaScript (no framework, no build step)
+- **Backend:** Node.js, Express
+- **Database:** MySQL / MariaDB via XAMPP, accessed with `mysql2`
